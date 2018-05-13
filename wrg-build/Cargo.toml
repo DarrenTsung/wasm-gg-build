@@ -1,0 +1,12 @@
+[package]
+name = "wrg-build"
+version = "0.1.0"
+authors = ["Darren Tsung <darren@onesignal.com>"]
+
+[dependencies]
+structopt = "0.2"
+failure = "0.1"
+log = "0.4"
+env_logger = "0.5"
+
+cargo-toml = { path = "../cargo-toml" }
