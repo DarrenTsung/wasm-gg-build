@@ -71,7 +71,7 @@ fn main_ty() -> Result<(), Error> {
     // Execute the build before cleaning the target directory
     execute_command(
         "cargo",
-        "+nightly build --target wasm32-unknown-unknown",
+        "build --target wasm32-unknown-unknown",
         "Build project targeting wasm32-unknown-unknown"
     )?;
     info!("done!\n");
