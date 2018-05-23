@@ -8,5 +8,14 @@ structopt = "0.2"
 failure = "0.1"
 log = "0.4"
 env_logger = "0.5"
+tempfile = "3.0"
+flate2 = "1.0"
+hubcaps = "0.4"
+tokio-core = "0.1"
+semver = "0.9"
+futures = "0.1"
+reqwest = "0.8"
+tar = "0.4"
 
 cargo-toml = { path = "../cargo-toml" }
+cargo-lock = { path = "../cargo-lock" }

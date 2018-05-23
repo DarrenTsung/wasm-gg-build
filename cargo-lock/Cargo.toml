@@ -1,0 +1,9 @@
+[package]
+name = "cargo-lock"
+version = "0.1.0"
+authors = ["Darren Tsung <darren.tsung@gmail.com>"]
+
+[dependencies]
+semver = "0.9"
+regex = "1.0"
+lazy_static = "1.0"
