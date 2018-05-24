@@ -1,5 +1,5 @@
 [package]
-name = "wrg-build"
+name = "wargo"
 version = "0.1.0"
 authors = ["Darren Tsung <darren@onesignal.com>"]
 

@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "wrg-build",
+    "wargo",
     "cargo-toml",
     "cargo-lock",
 ]

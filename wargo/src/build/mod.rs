@@ -1,88 +1,19 @@
-#[macro_use] extern crate structopt;
-#[macro_use] extern crate failure;
-#[macro_use] extern crate log;
-extern crate cargo_lock;
-extern crate cargo_toml;
-extern crate env_logger;
-extern crate flate2;
-extern crate futures;
-extern crate hubcaps;
-extern crate reqwest;
-extern crate semver;
-extern crate tar;
-extern crate tempfile;
-extern crate tokio_core;
-
-use std::fs::{self, File};
-use std::io::{Read, Write};
-use std::path::{Path};
-use std::process::{Command, exit};
-use std::str;
-
-use failure::Error;
-use flate2::read::GzDecoder;
-use hubcaps::Github;
-use log::LevelFilter;
-use semver::Version;
-use structopt::StructOpt;
-use tempfile::TempDir;
-use tokio_core::reactor::Core;
-
-use cargo_toml::CargoToml;
+use super::*;
 
 mod choose_version;
 use self::choose_version::choose_version_by_key;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "wrg-build", about = "Tool for building wasm-rgame projects.")]
-struct Opt {
-}
+pub fn build_project() -> Result<()> {
+    let project_name = project_name()?;
+    let built_project_name = built_project_name(&project_name);
 
-fn main() {
-    env_logger::Builder::new()
-        .format(|buf, record| write!(buf, "{}", record.args()))
-        .filter_level(LevelFilter::Info)
-        .init();
-
-    if let Err(err) = main_ty() {
-        error!("{}", err);
-        exit(1);
-    }
-}
-
-fn main_ty() -> Result<(), Error> {
-    let Opt { .. } = Opt::from_args();
-
-    let project_name = {
-        let mut cargo_file = File::open("Cargo.toml")
-            .map_err(|err| format_err!("Cannot find Cargo.toml in project directory, error: {}", err))?;
-
-        let mut cargo_contents = String::new();
-        let _ = cargo_file.read_to_string(&mut cargo_contents)
-            .map_err(|err| format_err!("Cannot read Cargo.toml contents, error: {}", err))?;
-
-        let cargo_toml = CargoToml::from_str(&cargo_contents)
-            .map_err(|err| format_err!("Cannot parse Cargo.toml, error: {}", err))?;
-        cargo_toml.package.name.to_owned()
-    };
-    let built_project_name = project_name.replace("-", "_");
-
-    let wasm_rgame_version = {
-        let cargo_lock_contents = fs::read_to_string("Cargo.lock")
-            .map_err(|err| format_err!("Cannot find / read Cargo.lock in project directory, error: {}", err))?;
-
-        if let Some(version) = cargo_lock::find_version("wasm-rgame", &cargo_lock_contents) {
-            version
-        } else {
-            return Err(format_err!("Cannot find wasm-rgame package in the Cargo.lock file!"));
-        }
-    };
+    let wasm_rgame_version = wasm_rgame_version()?;
     info!("The current project is using wasm-rgame version: `{}`.\n", wasm_rgame_version);
 
     // Download the release of wasm-rgame-js that corresponds to the version of
     // wasm-rgame that the project is using
     let mut core = Core::new().unwrap();
-    let github = Github::new("wrg-build-agent".to_string(), None, &core.handle());
+    let github = Github::new("wargo-agent".to_string(), None, &core.handle());
     let repo_releases = github.repo("DarrenTsung", "wasm-rgame-js").releases();
     let releases = core.run(repo_releases.list()).unwrap();
     if releases.is_empty() {
@@ -197,27 +128,6 @@ fn main_ty() -> Result<(), Error> {
 
     let target_index_path = target_dir_path.join("index.html");
     info!("Finished building project: {} successfully. View the deployed project at {:?}.\n", project_name, target_index_path.as_os_str());
-    Ok(())
-}
-
-/// Executes the command with process::Command, mapping both the error of
-/// executing the command and the status code + output to a Failure::Error
-fn execute_command(command: &str, args: &str, context: &str) -> Result<(), Error> {
-    let output = Command::new(command)
-        .args(args.split_whitespace())
-        .output()
-        .map_err(|err| format_err!("Failed to execute, context: `{}`, error: {}\nFull command: `{} {}`", context, err, command, args))?;
-
-    if !output.status.success() {
-        return Err(format_err!(
-            "Command failed, context: `{}`\n\n\nStdout:\n{}\n\n\nStderr:\n{}\n\n\nFull command: `{} {}`",
-            context,
-            str::from_utf8(&output.stdout).unwrap(),
-            str::from_utf8(&output.stderr).unwrap(),
-            command,
-            args,
-        ));
-    }
 
     Ok(())
 }
