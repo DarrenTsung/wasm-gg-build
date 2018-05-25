@@ -7,6 +7,39 @@ pub fn build_project() -> Result<()> {
     let project_name = project_name()?;
     let built_project_name = built_project_name(&project_name);
 
+    info!("Installing wasm32-unknown-unknown target if necessary.. ");
+    execute_command(
+        "rustup",
+        "target install wasm32-unknown-unknown",
+        "Ensure that the wasm32-unknown-unknown target is installed"
+    )?;
+    info!("done!\n");
+
+    info!("Installing nightly if necessary.. ");
+    execute_command(
+        "rustup",
+        "toolchain install nightly",
+        "Ensure that the nightly compiler is installed"
+    )?;
+    info!("done!\n");
+
+    info!("Setting override to nightly if necessary.. ");
+    execute_command(
+        "rustup",
+        "override set nightly",
+        "Ensure that nightly compiler is used for the project"
+    )?;
+    info!("done!\n");
+
+    info!("Building the project, this may take some time.. ");
+    // Execute the build before cleaning the target directory
+    execute_command(
+        "cargo",
+        "build --target wasm32-unknown-unknown",
+        "Build project targeting wasm32-unknown-unknown"
+    )?;
+    info!("done!\n");
+
     let wasm_rgame_version = wasm_rgame_version()?;
     info!("The current project is using wasm-rgame version: `{}`.\n", wasm_rgame_version);
 
@@ -51,15 +84,6 @@ pub fn build_project() -> Result<()> {
             .map_err(|err| format_err!("Failed to read temporary directory, error: {}", err))?
             .nth(0).expect("one entry exists").expect("can read entry").path()
     };
-
-    info!("Building the project, this may take some time.. ");
-    // Execute the build before cleaning the target directory
-    execute_command(
-        "cargo",
-        "build --target wasm32-unknown-unknown",
-        "Build project targeting wasm32-unknown-unknown"
-    )?;
-    info!("done!\n");
 
     // Cleanup and create the wasm-rgame target directory
     // The unpacked data specified with the data_path will be added to this clean directory.

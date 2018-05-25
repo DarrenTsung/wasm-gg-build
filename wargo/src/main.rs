@@ -30,6 +30,7 @@ use tokio_core::reactor::Core;
 use cargo_toml::CargoToml;
 
 mod build;
+mod init;
 
 type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -42,7 +43,9 @@ enum Opt {
     },
     #[structopt(name = "init")]
     Init {
-
+        /// Set the resulting package name, defaults to the directory name.
+        #[structopt(long = "name")]
+        name: Option<String>,
     },
 }
 
@@ -63,9 +66,8 @@ fn main_ty() -> Result<()> {
         Opt::Build { .. } => {
             build::build_project()
         },
-        Opt::Init { .. } => {
-            // do nothing for now
-            Ok(())
+        Opt::Init { name } => {
+            init::initialize_entrypoint(name)
         },
     }
 }

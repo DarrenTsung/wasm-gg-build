@@ -1,0 +1,28 @@
+#![feature(proc_macro, extern_prelude, wasm_custom_section, wasm_import_module)]
+extern crate wasm_bindgen;
+extern crate wasm_rgame;
+
+use wasm_bindgen::prelude::*;
+use wasm_rgame::Canvas;
+
+mod bootstrap;
+mod simple_box;
+pub use self::bootstrap::*;
+
+#[wasm_bindgen]
+#[allow(non_camel_case_types)]
+pub struct $PROJECT_NAME_EntryPoint {}
+
+#[wasm_bindgen]
+impl $PROJECT_NAME_EntryPoint {
+    pub fn init(application: &mut Application) {
+        let canvas = Canvas::instance();
+        canvas.set_width(500);
+        canvas.set_height(500);
+
+        let spawner = application.as_spawner();
+
+        // Replace this line with your own type that implements Delegate
+        spawner.spawn_root(simple_box::SimpleBox::new());
+    }
+}

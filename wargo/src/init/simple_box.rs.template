@@ -1,0 +1,48 @@
+use wasm_rgame::Canvas;
+use wasm_rgame::delegate_prelude::*;
+
+use std::f32::consts::PI;
+
+pub struct SimpleBox {
+    size: f32,
+}
+
+impl SimpleBox {
+    pub fn new() -> SimpleBox {
+        SimpleBox { size: 0.0, }
+    }
+}
+
+impl Delegate for SimpleBox {
+    fn tick(
+        &mut self,
+        context: &mut ApplicationContext,
+        _key_manager: &KeyManager,
+        _mouse_state: &MouseState,
+        _spawner: &mut DelegateSpawner,
+    ) {
+        // Oscillates between -1.0 - 1.0
+        let period = (context.total_s().sin() as f32) / PI;
+        // Size oscillates between 0.25 - 0.35
+        self.size = 0.3 + (period * 0.05);
+    }
+
+    fn render(&self, graphics: &mut Graphics) {
+        let canvas = Canvas::instance();
+
+        let canvas_width = canvas.width() as f32;
+        let canvas_height = canvas.height() as f32;
+
+        let width = canvas_width * self.size;
+        let height = canvas_height * self.size;
+
+        let x = (canvas_width / 2.0) - (width / 2.0);
+        let y = (canvas_height / 2.0) - (height / 2.0);
+
+        graphics.draw_rect(
+            x, y, width, height,
+            // (r, g, b, a) - Black color with 100% alpha
+            [0, 0, 0, 255]
+        );
+    }
+}

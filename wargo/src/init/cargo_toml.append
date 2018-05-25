@@ -1,0 +1,5 @@
+wasm-rgame = "*"
+wasm-bindgen = "*"
+
+[lib]
+crate-type = ["cdylib"]
