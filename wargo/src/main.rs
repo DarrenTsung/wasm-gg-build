@@ -13,9 +13,10 @@ extern crate tar;
 extern crate tempfile;
 extern crate tokio_core;
 
-use std::fs::{self, File};
+use std::env;
+use std::fs::{self, File, DirBuilder};
 use std::io::{Read, Write};
-use std::path::{Path};
+use std::path::{Path, PathBuf};
 use std::process::{Command, exit};
 use std::str;
 
@@ -37,15 +38,29 @@ type Result<T> = std::result::Result<T, failure::Error>;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "wargo", about = "Tool used with wasm-rgame projects.")]
 enum Opt {
+    /// Build the current project, packing the output wasm file with all
+    /// the additional Javascript / HTML.
     #[structopt(name = "build")]
     Build {
 
     },
+    /// Initialize the current directory as a wasm-rgame project.
     #[structopt(name = "init")]
     Init {
         /// Set the resulting package name, defaults to the directory name.
         #[structopt(long = "name")]
         name: Option<String>,
+    },
+    /// Create a new cargo package at <path> and initialize it.
+    #[structopt(name = "new")]
+    New {
+        /// Set the resulting package name, defaults to the directory name.
+        #[structopt(long = "name")]
+        name: Option<String>,
+
+        /// The path to create the new cargo package at.
+        #[structopt(parse(from_os_str))]
+        path: PathBuf,
     },
 }
 
@@ -67,6 +82,16 @@ fn main_ty() -> Result<()> {
             build::build_project()
         },
         Opt::Init { name } => {
+            init::initialize_entrypoint(name)
+        },
+        Opt::New { path, name } => {
+            DirBuilder::new()
+                .create(path.clone())
+                .map_err(|err| format_err!("Could not create directory at path: {:?}, error: {}", path, err))?;
+
+            env::set_current_dir(path.clone())
+                .map_err(|err| format_err!("Could not move into newly created path: {:?}, error: {}", path, err))?;
+
             init::initialize_entrypoint(name)
         },
     }
