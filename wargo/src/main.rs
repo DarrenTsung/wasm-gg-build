@@ -42,7 +42,10 @@ enum Opt {
     /// the additional Javascript / HTML.
     #[structopt(name = "build")]
     Build {
-
+        /// Use a local path for the js files, defaults to downloading the latest
+        /// matching release.
+        #[structopt(long = "js-path", parse(from_os_str))]
+        js_path: Option<PathBuf>,
     },
     /// Initialize the current directory as a wasm-rgame project.
     #[structopt(name = "init")]
@@ -78,8 +81,10 @@ fn main() {
 
 fn main_ty() -> Result<()> {
     match Opt::from_args() {
-        Opt::Build { .. } => {
-            build::build_project()
+        Opt::Build { js_path } => {
+            build::build_project(build::BuildProjectConfig {
+                js_path,
+            })
         },
         Opt::Init { name } => {
             init::initialize_entrypoint(name)
